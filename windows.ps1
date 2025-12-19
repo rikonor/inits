@@ -1,64 +1,15 @@
-# Windows setup script
-# Run with: irm https://inits.or-rikon.com/windows.ps1 | iex
-# Or download and run: .\windows.ps1
-
-#Requires -RunAsAdministrator
+# Encrypted installer - https://github.com/rikonor/inits
 $ErrorActionPreference = "Stop"
-
-Write-Host "=== Windows Setup ===" -ForegroundColor Cyan
-
-# Install winget if not present (Windows 10+)
-if (!(Get-Command winget -ErrorAction SilentlyContinue)) {
-    Write-Host "Installing winget..."
-    $progressPreference = 'silentlyContinue'
-    Invoke-WebRequest -Uri https://aka.ms/getwinget -OutFile winget.msixbundle
-    Add-AppxPackage winget.msixbundle
-    Remove-Item winget.msixbundle
+if (-not (Get-Command openssl -ErrorAction SilentlyContinue)) {
+    Write-Host "Error: openssl not found." -ForegroundColor Red
+    Write-Host "Please install Git for Windows: https://git-scm.com/download/win"
+    Write-Host "Then run this script from Git Bash or ensure openssl is in PATH."
+    exit 1
 }
-
-# Install packages via winget
-Write-Host "Installing packages..."
-$packages = @(
-    "Git.Git"
-    "Microsoft.WindowsTerminal"
-    "Microsoft.VisualStudioCode"
-    "Neovim.Neovim"
-    "starship"
-    "sharkdp.bat"
-    "BurntSushi.ripgrep.MSVC"
-    "sharkdp.fd"
-    "junegunn.fzf"
-    "Docker.DockerDesktop"
-    "1Password.1Password"
-    "Obsidian.Obsidian"
-)
-
-foreach ($package in $packages) {
-    Write-Host "  Installing $package..."
-    winget install --id $package --accept-source-agreements --accept-package-agreements -h
-}
-
-# Install WSL2
-Write-Host "Setting up WSL2..."
-wsl --install -d Ubuntu
-
-# Clone dotfiles (Windows-specific branch or config)
-Write-Host "Setting up dotfiles..."
-$dotfilesPath = "$env:USERPROFILE\.dotfiles"
-if (!(Test-Path $dotfilesPath)) {
-    git clone https://github.com/rikonor/dotfiles.git $dotfilesPath
-    # Run Windows-specific setup from dotfiles
-    if (Test-Path "$dotfilesPath\windows\setup.ps1") {
-        & "$dotfilesPath\windows\setup.ps1"
-    }
-}
-
-# Configure Windows Terminal to use starship
-$wtSettings = "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
-if (Test-Path $wtSettings) {
-    Write-Host "Note: Configure Windows Terminal profile to run starship manually"
-}
-
-Write-Host ""
-Write-Host "=== Setup Complete ===" -ForegroundColor Green
-Write-Host "Restart your computer to complete WSL2 installation."
+$Password = Read-Host -Prompt "Password" -AsSecureString
+$BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password)
+$PlainPassword = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+$Payload = "U2FsdGVkX1+vNwXgy87rNeBlJbnv/NNBAc9a+oXgFbXvC04vk5ZzFszgV9UIlwLAGy3SdTmhR57ce6jhqw3/C0mswYtgJpdVtTNSUtda2NJNQqRmr/tNEE6KIOTaJhhcSKkQCAYkVNVGPN001OMErV4STSaJrPN2aiUbXTj2Yo4BfvcmQQXYJtTrrwvOexClXNh8XRl5DGE+XoZbMrCPMsDZMN1IpHsWIQ+GwfqjYTzpPHbMIavWo4ydDVUuWYFW5E+ZhkRK0Ujj9MG6gRSKMZaoHy1SsCiZ1A1IdD0A+IGb/5il4XCAvP3Ce+8dl4ndnlNZCJ0cYZwc87nY81DPHKsvlxTRwX08nwMXZtuQZ6VmGs2DtxCdyikA6mD9xgFUa7g6y+ADihgV7RlHsMpORYG5kLMos9jtQUsLUjZDmCXaQUL8FPY21scZsudy3r0FcrleN1IiG5P1tzoB1Z82omr7vBGWnTA+rGVdl43TrDvd1a64WQrP4mZ8epz+GQTxYJkEuo18xweN3majAxv/PNitdwk2zvjXvPAEOwPTwsSKkDd+xS99MBo+NlvXzppD2vVAU9SNxNO8I8rt2tzUpMtwsbExM9KXemzmilCbMTAoseGb84qa8zto56+87SmEUlD7WF69OjhQwDJueja0lMqlbLLgoIPpsnIttNuPsNN/B0L7P2eMsIUkGiEEcDoRBMXFC/VzCsSS0V9OYkL/i3WwxqOqv4dL7sYts6lW+SHRJZCSKgW1lgU5YbbvSGLFCsdKHAiIWnY4qap4vePu12NRB/Ba1aT9IJMnOSlY4/px4cKwKIt1o7U/O8onYQotgvBs9yUisqyKcIcN4N0kXM5hIXidVyS/gxcnaPZAcgHPiLS4OKQ+CiT6TloDhARSaldBAhVNYideVPcdee/rmoO/Wqhtq+T9x59/BTQaKK/mN32l3DuaZubHbdwM/GHi8uhkcYjiISEB/G7YIPmY3LXkrrj3NTx0orJpjuVZ1MLk3q/MRuqHsWpZF9kgc7ty8K/xdq5oDG5R1YwkmMWaehvX/jX3uwxQnqEhAw5BgKaj5vEDhpZyhwLtAbea+XSlgrzsed0vP17SS32tXi8zJm8XStPJbe1XA4xW75bLJp3iZAO3KM8WZzMtqbQWgeV3vE59v+MIGqKFtOAaYfoDutxBHQN4s0tW8IeaIcWRYtqPAJOtLiP+RRP1z+QYBbFtEYDTfwUf9ZCtg5o5Qimc8eBWFb6x/3+K5Unn8IrReMO1VlQa9BpcP6sTjakSAWpL77ouPw27wkDWeNMABS1KPGarO7MYIVTGp9H0+AM0qxOY4Rrmz1EGiNcdzhRlZ3dS/IaFTCl7DBJrqjsduVqn2TBwnWa+q36UriBi5SUydaZ+M6g578TtSHvJZPiofmISdy/ieRUm/yG9bsFp/DeaSNnH1mHx0pmS0bAewob/h074S7NqzmaNSe8rfyc7v4sio6zt1/FLFfnxa7YIwA9sqVuJcTap0VFXGmOZDLYddGmUYoaOXZc2EESBH0Bre9OQ+yLCDre2TW2sp2Q7hda8r0bueWdq3ZSbc5H51zJjzIQUqmt+DHdqFBLoTdn5wkfsltnn1G85ZpdFukzkXCxE1hNf6CYv7mT8LrJoJJepyhsb9xqbfeXKnce0hB144NyNxEnpk35OrPCRlxvn5WxZvSs8maPUNouDDdJPuKPsp2iSvuC5Ezg1nJW6olSTQ487Sq7wqkuOQ7YLdAJi6p4sNYKxXsaTqLCFpzGEeP7elpLxYWe3MB5h336JVJ9Ybtxs4PpKem5ZreD2+VfPJURES8SUr1zIej1xEFd+xZDqw3py4pDUz57JNeY0+xLwS3wj7CgSfMgyoQc8eZZG0h36Y5HvdH0b/Xklu3E7M9YJp+Rjm9xUKqQ19MLH+WomWSJStiIw4r0+LAi78TBG1wUd2ACt7uXtTWAlEJlsz+LSreukbQ/rE+Zrzib7B0y1W01C9ji7wBi6UubZkcqcX9T01py9iNJogZ7xhbt2ocnJALeNKcjfAwdXREjf7lRJFo9lj8UncYRMgp26LTZ/Xyl/JgAps9NTlhNbwDReFX5OZDhla7t4Pso6n8Lql0BqrevtIY37VCmQPbX5a9O2XUcRegvoCLgWwDyUQslOO/Wtnm822vDwqP8DWZK0hA/uh6Z6dGKmve/nx7EYeU81q8xxlFcwjaTggtVNxHjxQeJnPrfPOeTirbK8VBbXoQZU9d7LmjbGVJMI57FcPcOhD2g3o+jnoh7E7urfJZ2Bv7E9wuhniP+jFSO9ulVHRlp5uMCFOV3jiXms40/EqggzC+Ndg65w6pmph9/MHVKC+hLnea68CVi/53DVCNjC8s6jQWdkcA4g9rNwY04cPsTeNmLGT4yVmzd/oXlr0rjOrYbxRZsiVrRKqiFCT+KrJAAfbxSShys3JPKmSBdWl6ko0Ktblp4tpTO2U5YVMUMzl9tO03LlUYx83qysykz/Hg+fmVvBMgTXIgUCPVO5swdQLXn/uyDae/NE57HEVMzLZaPvdcaEh00xBUr87PjMfo1Jd9I0dnDkUqLJJvffsq6yqAr4XVMp5ncmb5w7kZO875pRBd7syCMkHKeaSVe0O8hDKbDDe2GIcxRN3hwcduIqEsq0JDu9VYaRNr69LC/CYD8I/mvgjE+jyf66UXTYUPAUuJU1"
+$Decrypted = $Payload | openssl enc -aes-256-cbc -d -a -pbkdf2 -iter 100000 -k $PlainPassword 2>$null
+if (-not $Decrypted) { Write-Host "Error: Decryption failed. Wrong password?" -ForegroundColor Red; exit 1 }
+$Decrypted | Invoke-Expression
