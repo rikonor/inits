@@ -1,0 +1,8 @@
+#!/bin/sh
+# Encrypted installer - https://github.com/rikonor/inits
+set -e
+if ! command -v openssl >/dev/null 2>&1; then echo "Error: openssl required"; exit 1; fi
+printf "Password: "; stty -echo 2>/dev/null || true; read PASSWORD; stty echo 2>/dev/null || true; echo ""
+PAYLOAD="U2FsdGVkX192gKFk2OY60l2peCEzBQFSFYxQQeSMS6ze2dXpk9TGRMZEA/dFPcI4UKNdtr8bMCXnqM1yboasgTRPH/IXvtEaRTULSm/vRWPCW7gFEWY9Nx8zBOSKqB3T"
+DECRYPTED=$(echo "$PAYLOAD" | openssl enc -aes-256-cbc -d -a -pbkdf2 -iter 100000 -k "$PASSWORD" 2>/dev/null) || { echo "Error: Decryption failed. Wrong password?"; exit 1; }
+echo "$DECRYPTED" | sh

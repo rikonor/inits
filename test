@@ -1,0 +1,8 @@
+#!/bin/sh
+# Encrypted installer - https://github.com/rikonor/inits
+set -e
+if ! command -v openssl >/dev/null 2>&1; then echo "Error: openssl required"; exit 1; fi
+printf "Password: "; stty -echo 2>/dev/null || true; read PASSWORD; stty echo 2>/dev/null || true; echo ""
+PAYLOAD="U2FsdGVkX18yI86E18yV8F25ifzJy/LqKqTP5BtkpS4Gac23W1DuW/71Ew8kgpS4aRTsySHrDlV9dw1Y2QSonUNxRJ+TxFvVZUfe4C5QojUPBj1j6jQXesH4cthtk9R8Ba5Pnd7ps/Fifb2Wn65tJpgyfE54Tb2uuBDmRyjbODSJwiGEFJy4Kmbr6oSs+yOTIBhBA2QrdTpfxRzAJS0yp+KHo9SMw9V5tsfmscwP8+BPx0HVlmUpago5iZBY4WpCf+40qPn/wvKA0f6ZrgOGV0QrhJkGNU77vlQF0fnKCHcrikVBJ7F0CbwcenfCqk/0DBwDYRUnFsiGg7ZrZvXlbW6UVzf7xYjJY3mUGv96fmz/sgLfIm1AAqN1dqhxfDUULznyRswlGve6IilI1cANqULkTsQ35nuzwSvRvxy0m2c8nmFmAvM54GJ0hyfE20MxcrdSgBBehMFYdN56o65mmIpE0pU4SxbbeOwWo+bWnxo="
+DECRYPTED=$(echo "$PAYLOAD" | openssl enc -aes-256-cbc -d -a -pbkdf2 -iter 100000 -k "$PASSWORD" 2>/dev/null) || { echo "Error: Decryption failed. Wrong password?"; exit 1; }
+echo "$DECRYPTED" | sh
